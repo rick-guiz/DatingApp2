@@ -26,12 +26,19 @@ export class RegisterComponent implements OnInit {
     this.registerForm = new FormGroup({
       username: new FormControl("Hello", Validators.required),
       password: new FormControl("", [Validators.required, Validators.minLength(4), Validators.maxLength(8)]), 
-      confirmPassword: new FormControl("", Validators.required)
+      confirmPassword: new FormControl("", [Validators.required, , this.matchValues('password')])
+    })
+    this.registerForm.controls.password.valueChanges.subscribe(() => {
+      this.registerForm.controls.confirmPassword.updateValueAndValidity();
     })
   }
 
-  
-
+  matchValues(matchTo: string): ValidatorFn {
+    return (control: AbstractControl) => {
+      return control?.value === control?.parent?.controls[matchTo].value 
+        ? null : {isMatching: true}
+    }
+  }
 
   register() {
     console.log(this.registerForm.value)
