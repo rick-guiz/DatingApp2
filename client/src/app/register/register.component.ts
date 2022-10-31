@@ -12,6 +12,7 @@ import { AbstractControl, FormBuilder, FormControl, FormGroup, ValidatorFn, Vali
 export class RegisterComponent implements OnInit {
   @Output() cancelRegister = new EventEmitter();
   registerForm: FormGroup;
+  maxDate: Date;
 
 
   model: any = {};
@@ -21,6 +22,8 @@ export class RegisterComponent implements OnInit {
 
   ngOnInit(): void {
     this.intitializeForm();
+    this.maxDate = new Date();
+    this.maxDate.setFullYear(this.maxDate.getFullYear() -18);
   }
 
   intitializeForm() {
