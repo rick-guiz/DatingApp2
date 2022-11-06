@@ -6,6 +6,7 @@ import { of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { PaginatedResult } from '../_models/pagination';
 import { UserParams } from '../_models/userParams';
+import { User } from '../_models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -13,6 +14,7 @@ import { UserParams } from '../_models/userParams';
 export class MembersService {
   baseUrl = environment.apiUrl;
   members: Member[] = [];
+  user: User;
   
 
   constructor(private http: HttpClient) { }
@@ -50,8 +52,9 @@ export class MembersService {
     return this.http.delete(this.baseUrl + 'users/delete-photo/' + photoId);
   }
 
-  private getPaginatedResult<T>(url, params) {
+  
 
+  private getPaginatedResult<T>(url, params) {
     const paginatedResult: PaginatedResult<T> = new PaginatedResult<T>();
     return this.http.get<T>(this.baseUrl + 'users', { observe: 'response', params }).pipe(
       map(response => {
