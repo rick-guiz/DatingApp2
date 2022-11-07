@@ -3,7 +3,7 @@ import { environment } from 'src/environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Member } from '../_models/member';
 import { of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, reduce } from 'rxjs/operators';
 import { PaginatedResult } from '../_models/pagination';
 import { UserParams } from '../_models/userParams';
 import { User } from '../_models/user';
@@ -43,8 +43,23 @@ export class MembersService {
   }
 
   getMember(username: string) {
-    const member = this.members.find(x => x.username === username);
-    if (member !== undefined) return of(member);
+    //const member = [...this.memberCache.values()];
+    //console.log(member); //here to see what we have inside the paginated result array
+    //but we want a single array that contains the individual result
+    // so we use reduce function like below
+
+    // const member = [...this.memberCache.values()]
+    //   .reduce((arr, elem) => arr.concat(elem.result), []);
+    // console.log(member); //now we have a duplicates but we don't want any duplication
+
+    const member = [...this.memberCache.values()]
+      .reduce((arr, elem) => arr.concat(elem.result), [])
+      .find((member: Member) => member.username === username);
+
+    if (member) {
+        return of(member);
+      }
+
     return this.http.get<Member>(this.baseUrl + 'users/' + username);
   }
 
