@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Member } from '../_models/member';
-import { of } from 'rxjs';
-import { map, reduce, take } from 'rxjs/operators';
+import { of, pipe } from 'rxjs';
+import { map, take } from 'rxjs/operators';
 import { PaginatedResult } from '../_models/pagination';
 import { UserParams } from '../_models/userParams';
-import { User } from '../_models/user';
 import { AccountService } from './account.service';
+import { User } from '../_models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -15,10 +15,9 @@ import { AccountService } from './account.service';
 export class MembersService {
   baseUrl = environment.apiUrl;
   members: Member[] = [];
-  memberCache = new Map(); //map is like dictionary to store info
+  memberCache = new Map();
   user: User;
   userParams: UserParams;
-  
 
   constructor(private http: HttpClient, private accountService: AccountService) {
     this.accountService.currentUser$.pipe(take(1)).subscribe(user => {
@@ -26,7 +25,6 @@ export class MembersService {
       this.userParams = new UserParams(user);
     })
   }
-
 
   getUserParams() {
     return this.userParams;
@@ -42,8 +40,6 @@ export class MembersService {
   }
 
   getMembers(userParams: UserParams) {
-    //console.log(Object.values(userParams).join('-')); //to inspect object's values
-
     var response = this.memberCache.get(Object.values(userParams).join('-'));
     if (response) {
       return of(response);
@@ -57,30 +53,20 @@ export class MembersService {
     params = params.append('orderBy', userParams.orderBy);
 
     return this.getPaginatedResult<Member[]>(this.baseUrl + 'users', params)
-        .pipe(map(response => {
+      .pipe(map(response => {
         this.memberCache.set(Object.values(userParams).join('-'), response);
         return response;
       }))
   }
 
   getMember(username: string) {
-    //const member = [...this.memberCache.values()];
-    //console.log(member); //here to see what we have inside the paginated result array
-    //but we want a single array that contains the individual result
-    // so we use reduce function like below
-
-    // const member = [...this.memberCache.values()]
-    //   .reduce((arr, elem) => arr.concat(elem.result), []);
-    // console.log(member); //now we have a duplicates but we don't want any duplication
-
     const member = [...this.memberCache.values()]
       .reduce((arr, elem) => arr.concat(elem.result), [])
       .find((member: Member) => member.username === username);
 
     if (member) {
-        return of(member);
-      }
-
+      return of(member);
+    }
     return this.http.get<Member>(this.baseUrl + 'users/' + username);
   }
 
@@ -101,11 +87,19 @@ export class MembersService {
     return this.http.delete(this.baseUrl + 'users/delete-photo/' + photoId);
   }
 
-  
+  addLike(username: string) {
+    return this.http.post(this.baseUrl + 'likes/' + username, {})
+  }
+
+  getLikes(predicate: string, pageNumber, pageSize) {
+    let params = this.getPaginationHeaders(pageNumber, pageSize);
+    params = params.append('predicate', predicate);
+    return this.getPaginatedResult<Partial<Member[]>>(this.baseUrl + 'likes', params);
+  }
 
   private getPaginatedResult<T>(url, params) {
     const paginatedResult: PaginatedResult<T> = new PaginatedResult<T>();
-    return this.http.get<T>(this.baseUrl + 'users', { observe: 'response', params }).pipe(
+    return this.http.get<T>(url, { observe: 'response', params }).pipe(
       map(response => {
         paginatedResult.result = response.body;
         if (response.headers.get('Pagination') !== null) {
