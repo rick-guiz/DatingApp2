@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-
 @Component({
   selector: 'app-test-errors',
   templateUrl: './test-errors.component.html',
@@ -56,6 +55,5 @@ export class TestErrorsComponent implements OnInit {
       this.validationErrors = error;
     })
   }
-
 
 }
