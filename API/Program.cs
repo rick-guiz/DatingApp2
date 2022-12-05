@@ -24,8 +24,9 @@ namespace API
                 var userManager = services.GetRequiredService<UserManager<AppUser>>();
                 var roleManager = services.GetRequiredService<RoleManager<AppRole>>();
                 await context.Database.MigrateAsync();
-                //await context.Database.ExecuteSqlRawAsync("Truncate Table [Connections]"); // for db other than sqlite
-                await context.Database.ExecuteSqlRawAsync("Delete from [Connections]"); //for sqlite
+                //context.Connections.RemoveRange(context.Connections); //no good if we have thousands of rows
+                //await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE [Connections]"); // for db other than sqlite
+                await context.Database.ExecuteSqlRawAsync("DELETE FROM [Connections]"); //for sqlite
                 await Seed.SeedUsers(userManager, roleManager);
             }
             catch (Exception ex)
